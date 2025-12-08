@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Question = {
   id: string;
@@ -13,18 +15,39 @@ type Question = {
   texte_reponse?: string | null;
   intitule_question?: string | null;
   cree_le: string;
+  statut?: string | null;
+  visible?: boolean | null;
+};
+
+type LikeData = {
+  likes: number;
+  dislikes: number;
+  userLike: 'like' | 'dislike' | null;
 };
 
 export default function Home() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [search, setSearch] = useState("");
   const [themeFilter, setThemeFilter] = useState("all");
 
+  // Rediriger vers /login si l'utilisateur n'est pas connecté
   useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
+
+  // Charger les questions seulement si l'utilisateur est connecté
+  useEffect(() => {
+    if (!user || loading) return;
+
     const fetchQuestions = async () => {
       const { data, error } = await supabase
         .from("questions")
-        .select("id, titre, description, theme, texte_reponse, intitule_question, cree_le")
+        .select("id, titre, description, theme, texte_reponse, intitule_question, cree_le, statut, visible")
+        .eq("visible", true)
         .order("cree_le", { ascending: false });
 
       if (error) {
@@ -38,16 +61,19 @@ export default function Home() {
     };
 
     fetchQuestions();
-  }, []);
+  }, [user, loading]);
 
+  // Tous les hooks doivent être appelés avant les returns conditionnels
   const themes = useMemo(() => {
+    if (!user) return ["all"];
     const unique = new Set(
       questions.map((q) => (q.theme ? q.theme.trim() : "Autres"))
     );
     return ["all", ...Array.from(unique)];
-  }, [questions]);
+  }, [questions, user]);
 
   const filtered = useMemo(() => {
+    if (!user) return [];
     return questions.filter((q) => {
       const themeLabel = q.theme ? q.theme.trim() : "Autres";
 
@@ -61,7 +87,24 @@ export default function Home() {
 
       return matchesTheme && matchesSearch;
     });
-  }, [questions, search, themeFilter]);
+  }, [questions, search, themeFilter, user]);
+
+  // Afficher un message de chargement pendant la vérification de l'authentification
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="h-12 w-12 mx-auto border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm text-black/70">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si l'utilisateur n'est pas connecté, ne rien afficher (redirection en cours)
+  if (!user) {
+    return null;
+  }
 
   return (
     <main className="space-y-10">
@@ -72,7 +115,7 @@ export default function Home() {
             Initiative de la présidente de facultaire
           </p>
           <h1 className="text-2xl font-semibold text-black md:text-3xl">
-            Un espace collaboratif ouvert entre la faculté et ses étudiants
+            Une plateforme de communication ouverte entre la faculté et ses étudiants
           </h1>
           <p className="text-sm text-black/80 md:text-base">
             La présidente de faculté, Sabrina Penenge, met à disposition cet
@@ -214,7 +257,10 @@ export default function Home() {
 
 // Composant pour afficher une question avec réponse repliable
 function QuestionCard({ question }: { question: Question }) {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [likeData, setLikeData] = useState<LikeData>({ likes: 0, dislikes: 0, userLike: null });
+  const [loading, setLoading] = useState(false);
 
   const questionTexte = question.intitule_question ?? question.titre;
   const reponseTexte =
@@ -222,8 +268,99 @@ function QuestionCard({ question }: { question: Question }) {
     question.description ??
     "La réponse officielle sera publiée prochainement par la faculté.";
 
+  // Charger les likes au montage du composant
+  useEffect(() => {
+    const fetchLikes = async () => {
+      const { count: likesCount } = await supabase
+        .from("question_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("question_id", question.id)
+        .eq("type", "like");
+
+      const { count: dislikesCount } = await supabase
+        .from("question_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("question_id", question.id)
+        .eq("type", "dislike");
+
+      let userLike: 'like' | 'dislike' | null = null;
+      if (user) {
+        const { data } = await supabase
+          .from("question_likes")
+          .select("type")
+          .eq("question_id", question.id)
+          .eq("user_id", user.id)
+          .single();
+        if (data) userLike = data.type as 'like' | 'dislike';
+      }
+
+      setLikeData({
+        likes: likesCount || 0,
+        dislikes: dislikesCount || 0,
+        userLike,
+      });
+    };
+
+    fetchLikes();
+  }, [question.id, user]);
+
+  const handleLike = async (type: 'like' | 'dislike') => {
+    if (!user) {
+      alert("Tu dois être connecté pour aimer une question.");
+      return;
+    }
+
+    setLoading(true);
+    const currentType = likeData.userLike;
+
+    if (currentType === type) {
+      const { error } = await supabase
+        .from("question_likes")
+        .delete()
+        .eq("question_id", question.id)
+        .eq("user_id", user.id);
+
+      if (!error) {
+        setLikeData({
+          likes: type === 'like' ? likeData.likes - 1 : likeData.likes,
+          dislikes: type === 'dislike' ? likeData.dislikes - 1 : likeData.dislikes,
+          userLike: null,
+        });
+      }
+    } else {
+      if (currentType) {
+        await supabase
+          .from("question_likes")
+          .delete()
+          .eq("question_id", question.id)
+          .eq("user_id", user.id);
+      }
+
+      const { error } = await supabase
+        .from("question_likes")
+        .insert({
+          question_id: question.id,
+          user_id: user.id,
+          type,
+        });
+
+      if (!error) {
+        setLikeData({
+          likes: type === 'like' 
+            ? (currentType === 'dislike' ? likeData.likes + 1 : likeData.likes + 1)
+            : (currentType === 'like' ? likeData.likes - 1 : likeData.likes),
+          dislikes: type === 'dislike'
+            ? (currentType === 'like' ? likeData.dislikes + 1 : likeData.dislikes + 1)
+            : (currentType === 'dislike' ? likeData.dislikes - 1 : likeData.dislikes),
+          userLike: type,
+        });
+      }
+    }
+    setLoading(false);
+  };
+
   return (
-    <article className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm transition hover:shadow-md">
+    <article className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm transition hover:shadow-lg">
       {/* En-tête de la question */}
       <div className="mb-3">
         <div className="flex items-center justify-between">
@@ -273,10 +410,23 @@ function QuestionCard({ question }: { question: Question }) {
         </div>
       )}
 
-      {/* Actions (Like, Dislike, Commenter) */}
-      <div className="mt-4 flex items-center gap-4 border-t border-black/10 pt-3">
-        <button className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-black/70 transition hover:bg-black/5">
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {/* Actions (Like, Dislike) - Style Facebook */}
+      <div className="mt-4 flex items-center gap-6 border-t border-black/10 pt-4">
+        <button
+          onClick={() => handleLike('like')}
+          disabled={loading}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+            likeData.userLike === 'like'
+              ? "bg-blue-100 text-blue-600"
+              : "text-black/70 hover:bg-black/5"
+          } disabled:opacity-50`}
+        >
+          <svg 
+            className={`h-5 w-5 ${likeData.userLike === 'like' ? 'fill-blue-600' : ''}`} 
+            fill={likeData.userLike === 'like' ? 'currentColor' : 'none'} 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -285,9 +435,27 @@ function QuestionCard({ question }: { question: Question }) {
             />
           </svg>
           <span>J&apos;aime</span>
+          {likeData.likes > 0 && (
+            <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-600">
+              {likeData.likes}
+            </span>
+          )}
         </button>
-        <button className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-black/70 transition hover:bg-black/5">
-          <svg className="h-5 w-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button
+          onClick={() => handleLike('dislike')}
+          disabled={loading}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+            likeData.userLike === 'dislike'
+              ? "bg-red-100 text-red-600"
+              : "text-black/70 hover:bg-black/5"
+          } disabled:opacity-50`}
+        >
+          <svg 
+            className={`h-5 w-5 rotate-180 ${likeData.userLike === 'dislike' ? 'fill-red-600' : ''}`} 
+            fill={likeData.userLike === 'dislike' ? 'currentColor' : 'none'} 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -296,17 +464,11 @@ function QuestionCard({ question }: { question: Question }) {
             />
           </svg>
           <span>Je n&apos;aime pas</span>
-        </button>
-        <button className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-black/70 transition hover:bg-black/5">
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
-          <span>Commenter</span>
+          {likeData.dislikes > 0 && (
+            <span className="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
+              {likeData.dislikes}
+            </span>
+          )}
         </button>
       </div>
     </article>

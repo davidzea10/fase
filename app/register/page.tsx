@@ -60,7 +60,7 @@ export default function RegisterPage() {
           router.push("/login");
         }, 3000);
       } else {
-        // L'utilisateur est directement connecté (confirmation email désactivée)
+        // L'utilisateur est directement connecté (confirmation email désactivée) - rediriger vers la page d'accueil
         setTimeout(() => {
           router.push("/");
         }, 1500);
@@ -193,7 +193,7 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Inscription..." : "S&apos;inscrire"}
+            {loading ? "Inscription..." : "S'inscrire"}
           </button>
         </form>
 

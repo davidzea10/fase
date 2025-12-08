@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Question = {
   id: string;
@@ -12,18 +13,31 @@ type Question = {
   texte_reponse?: string | null;
   intitule_question?: string | null;
   cree_le: string;
+  statut?: string | null;
+  visible?: boolean | null;
+};
+
+type LikeData = {
+  likes: number;
+  dislikes: number;
+  userLike: 'like' | 'dislike' | null;
 };
 
 export default function QuestionsPage() {
+  const { user } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [search, setSearch] = useState("");
   const [themeFilter, setThemeFilter] = useState("all");
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ titre: "", theme: "", description: "" });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchQuestions = async () => {
       const { data, error } = await supabase
         .from("questions")
-        .select("id, titre, description, theme, texte_reponse, intitule_question, cree_le")
+        .select("id, titre, description, theme, texte_reponse, intitule_question, cree_le, statut, visible")
+        .eq("visible", true)
         .order("cree_le", { ascending: false });
 
       if (error) {
@@ -36,6 +50,40 @@ export default function QuestionsPage() {
 
     fetchQuestions();
   }, []);
+
+  const handleSubmitQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setSubmitting(true);
+    const { error } = await supabase
+      .from("questions")
+      .insert({
+        titre: formData.titre.trim(),
+        intitule_question: formData.description.trim() || formData.titre.trim(),
+        theme: formData.theme.trim() || null,
+        statut: "en_attente",
+        visible: false,
+        auteur_id: user.id,
+      });
+
+    if (error) {
+      console.error("Erreur soumission question:", error);
+      alert("Erreur lors de la soumission. Réessaie.");
+    } else {
+      setFormData({ titre: "", theme: "", description: "" });
+      setShowForm(false);
+      // Recharger les questions
+      const { data } = await supabase
+        .from("questions")
+        .select("id, titre, description, theme, texte_reponse, intitule_question, cree_le, statut, visible")
+        .eq("visible", true)
+        .order("cree_le", { ascending: false });
+      if (data) setQuestions(data);
+      alert("Question soumise avec succès ! Elle sera examinée par la préfacture.");
+    }
+    setSubmitting(false);
+  };
 
   const themes = useMemo(() => {
     const unique = new Set(
@@ -61,12 +109,76 @@ export default function QuestionsPage() {
   return (
     <section className="space-y-6">
       <div className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-semibold text-black">Toutes les questions</h1>
-        <p className="mt-2 text-sm text-black/80">
-          Explore les thématiques soulevées par les étudiants de la faculté.
-          Cette page sera enrichie avec des filtres avancés lors des prochaines étapes.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-black">Toutes les questions</h1>
+            <p className="mt-2 text-sm text-black/80">
+              Explore les thématiques soulevées par les étudiants de la faculté.
+            </p>
+          </div>
+          {user && (
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
+            >
+              {showForm ? "Annuler" : "Poser une question"}
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Formulaire de soumission de question */}
+      {showForm && user && (
+        <div className="rounded-2xl border border-blue-200 bg-blue-50/30 p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-black">Poser une question</h2>
+          <form onSubmit={handleSubmitQuestion} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-black">
+                Titre de la question *
+              </label>
+              <input
+                type="text"
+                value={formData.titre}
+                onChange={(e) => setFormData({ ...formData, titre: e.target.value })}
+                required
+                placeholder="Ex: Report de l'examen de macroéconomie"
+                className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-black">
+                Thématique (optionnel)
+              </label>
+              <input
+                type="text"
+                value={formData.theme}
+                onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
+                placeholder="Ex: Examens, Scolarité, Stages..."
+                className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-black">
+                Description détaillée (optionnel)
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                placeholder="Décris ta question plus en détail si nécessaire..."
+                className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={submitting || !formData.titre.trim()}
+              className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submitting ? "Envoi..." : "Soumettre la question"}
+            </button>
+          </form>
+        </div>
+      )}
 
       <div className="grid gap-4 rounded-2xl border border-black/5 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
         <label className="flex flex-col text-sm text-black">
@@ -113,7 +225,10 @@ export default function QuestionsPage() {
 
 // Composant pour afficher une question avec réponse repliable
 function QuestionCard({ question }: { question: Question }) {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [likeData, setLikeData] = useState<LikeData>({ likes: 0, dislikes: 0, userLike: null });
+  const [loading, setLoading] = useState(false);
 
   const questionTexte = question.intitule_question ?? question.titre;
   const reponseTexte =
@@ -121,8 +236,106 @@ function QuestionCard({ question }: { question: Question }) {
     question.description ??
     "La réponse officielle sera publiée prochainement par la faculté.";
 
+  // Charger les likes au montage du composant
+  useEffect(() => {
+    const fetchLikes = async () => {
+      // Compter les likes
+      const { count: likesCount } = await supabase
+        .from("question_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("question_id", question.id)
+        .eq("type", "like");
+
+      // Compter les dislikes
+      const { count: dislikesCount } = await supabase
+        .from("question_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("question_id", question.id)
+        .eq("type", "dislike");
+
+      // Vérifier si l'utilisateur a déjà liké/disliké
+      let userLike: 'like' | 'dislike' | null = null;
+      if (user) {
+        const { data } = await supabase
+          .from("question_likes")
+          .select("type")
+          .eq("question_id", question.id)
+          .eq("user_id", user.id)
+          .single();
+        if (data) userLike = data.type as 'like' | 'dislike';
+      }
+
+      setLikeData({
+        likes: likesCount || 0,
+        dislikes: dislikesCount || 0,
+        userLike,
+      });
+    };
+
+    fetchLikes();
+  }, [question.id, user]);
+
+  const handleLike = async (type: 'like' | 'dislike') => {
+    if (!user) {
+      alert("Tu dois être connecté pour aimer une question.");
+      return;
+    }
+
+    setLoading(true);
+    const currentType = likeData.userLike;
+
+    if (currentType === type) {
+      // Retirer le like/dislike
+      const { error } = await supabase
+        .from("question_likes")
+        .delete()
+        .eq("question_id", question.id)
+        .eq("user_id", user.id);
+
+      if (!error) {
+        setLikeData({
+          likes: type === 'like' ? likeData.likes - 1 : likeData.likes,
+          dislikes: type === 'dislike' ? likeData.dislikes - 1 : likeData.dislikes,
+          userLike: null,
+        });
+      }
+    } else {
+      // Ajouter ou changer le like/dislike
+      if (currentType) {
+        // Supprimer l'ancien
+        await supabase
+          .from("question_likes")
+          .delete()
+          .eq("question_id", question.id)
+          .eq("user_id", user.id);
+      }
+
+      // Ajouter le nouveau
+      const { error } = await supabase
+        .from("question_likes")
+        .insert({
+          question_id: question.id,
+          user_id: user.id,
+          type,
+        });
+
+      if (!error) {
+        setLikeData({
+          likes: type === 'like' 
+            ? (currentType === 'dislike' ? likeData.likes + 1 : likeData.likes + 1)
+            : (currentType === 'like' ? likeData.likes - 1 : likeData.likes),
+          dislikes: type === 'dislike'
+            ? (currentType === 'like' ? likeData.dislikes + 1 : likeData.dislikes + 1)
+            : (currentType === 'dislike' ? likeData.dislikes - 1 : likeData.dislikes),
+          userLike: type,
+        });
+      }
+    }
+    setLoading(false);
+  };
+
   return (
-    <article className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm transition hover:shadow-md">
+    <article className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm transition hover:shadow-lg">
       {/* En-tête de la question */}
       <div className="mb-3">
         <div className="flex items-center justify-between">
@@ -172,10 +385,23 @@ function QuestionCard({ question }: { question: Question }) {
         </div>
       )}
 
-      {/* Actions (Like, Dislike, Commenter) */}
-      <div className="mt-4 flex items-center gap-4 border-t border-black/10 pt-3">
-        <button className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-black/70 transition hover:bg-black/5">
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {/* Actions (Like, Dislike) - Style Facebook */}
+      <div className="mt-4 flex items-center gap-6 border-t border-black/10 pt-4">
+        <button
+          onClick={() => handleLike('like')}
+          disabled={loading}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+            likeData.userLike === 'like'
+              ? "bg-blue-100 text-blue-600"
+              : "text-black/70 hover:bg-black/5"
+          } disabled:opacity-50`}
+        >
+          <svg 
+            className={`h-5 w-5 ${likeData.userLike === 'like' ? 'fill-blue-600' : ''}`} 
+            fill={likeData.userLike === 'like' ? 'currentColor' : 'none'} 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -184,9 +410,27 @@ function QuestionCard({ question }: { question: Question }) {
             />
           </svg>
           <span>J&apos;aime</span>
+          {likeData.likes > 0 && (
+            <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-600">
+              {likeData.likes}
+            </span>
+          )}
         </button>
-        <button className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-black/70 transition hover:bg-black/5">
-          <svg className="h-5 w-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button
+          onClick={() => handleLike('dislike')}
+          disabled={loading}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+            likeData.userLike === 'dislike'
+              ? "bg-red-100 text-red-600"
+              : "text-black/70 hover:bg-black/5"
+          } disabled:opacity-50`}
+        >
+          <svg 
+            className={`h-5 w-5 rotate-180 ${likeData.userLike === 'dislike' ? 'fill-red-600' : ''}`} 
+            fill={likeData.userLike === 'dislike' ? 'currentColor' : 'none'} 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -195,17 +439,11 @@ function QuestionCard({ question }: { question: Question }) {
             />
           </svg>
           <span>Je n&apos;aime pas</span>
-        </button>
-        <button className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-black/70 transition hover:bg-black/5">
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
-          <span>Commenter</span>
+          {likeData.dislikes > 0 && (
+            <span className="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
+              {likeData.dislikes}
+            </span>
+          )}
         </button>
       </div>
     </article>

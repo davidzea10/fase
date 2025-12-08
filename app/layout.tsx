@@ -13,7 +13,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Faculté – Questions / Réponses étudiants",
+  title: "Plateforme de communication – Présidente de la faculté",
   description:
     "Publication des réponses officielles de la faculté aux questions des étudiants.",
 };
@@ -66,7 +66,7 @@ export default function RootLayout({
                         </div>
                       </div>
                       <p className="text-sm text-blue-900/80 leading-relaxed">
-                        Plateforme collaborative de questions/réponses initiée par la présidence facultaire pour faciliter le dialogue entre la faculté et ses étudiants.
+                        Plateforme de communication initiée par la présidence facultaire pour faciliter le dialogue entre la faculté et ses étudiants.
                       </p>
                       <div className="flex items-center gap-3 pt-2">
                         <a
@@ -187,7 +187,7 @@ export default function RootLayout({
                           © {new Date().getFullYear()} Faculté d&apos;économie – Université Pédagogique
                         </p>
                         <p className="text-xs mt-1">
-                          Tous droits réservés. Plateforme de questions/réponses étudiants.
+                          Tous droits réservés. Plateforme de communication – Présidente de la faculté.
                         </p>
                       </div>
 

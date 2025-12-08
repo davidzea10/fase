@@ -24,17 +24,17 @@ export function MainHeader() {
             <Image
               src="/fase.jpg"
               alt="Logo faculté"
-              fill
-              sizes="48px"
+              width={48}
+              height={48}
               className="object-contain p-1"
             />
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-semibold uppercase tracking-[0.16em] text-black/70">
-              Espace collaboratif étudiants
+              Plateforme de communication
             </span>
             <span className="text-sm font-semibold text-black sm:text-base">
-              Questions / Réponses – Faculté d&apos;économie
+              Présidente de la faculté
             </span>
           </div>
         </Link>
@@ -75,7 +75,7 @@ export function MainHeader() {
                   href="/admin"
                   className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-500/30 transition hover:bg-blue-500"
                 >
-                  Espace faculté
+                  Préfacture
                 </Link>
               )}
               <div className="flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-1.5">
@@ -107,7 +107,7 @@ export function MainHeader() {
                 href="/register"
                 className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-500/30 transition hover:bg-blue-500"
               >
-                S&apos;inscrire
+                S'inscrire
               </Link>
             </>
           )}
@@ -139,7 +139,7 @@ export function MainHeader() {
                   className="mt-2 block rounded-full bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-blue-500"
                   onClick={() => setOpen(false)}
                 >
-                  Espace faculté
+                  Préfacture
                 </Link>
               )}
               <div className="mt-2 flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2">
@@ -176,7 +176,7 @@ export function MainHeader() {
                 className="mt-2 block rounded-full bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-blue-500"
                 onClick={() => setOpen(false)}
               >
-                S&apos;inscrire
+                S'inscrire
               </Link>
             </>
           )}

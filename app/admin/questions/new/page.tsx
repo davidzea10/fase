@@ -47,20 +47,64 @@ export default function AdminNewQuestionPage() {
       payload.texte_reponse = form.texte_reponse.trim();
 
     try {
-      const { error: insertError } = await supabase
+      // Vérifier que le titre est rempli
+      if (!form.titre.trim()) {
+        setError("Le titre est requis pour créer une question.");
+        setSubmitting(false);
+        return;
+      }
+
+      console.log("Payload à insérer:", payload);
+      
+      const { data, error: insertError } = await supabase
         .from("questions")
-        .insert(payload);
+        .insert(payload)
+        .select();
 
       if (insertError) {
-        console.error("Erreur insertion question:", insertError);
-        setError("Impossible d’enregistrer la question. Vérifie tes droits.");
+        // Log complet de l'erreur
+        console.error("❌ Erreur insertion question complète:", insertError);
+        console.error("Type d'erreur:", typeof insertError);
+        console.error("Erreur stringifiée:", JSON.stringify(insertError, null, 2));
+        console.error("Code:", insertError?.code);
+        console.error("Message:", insertError?.message);
+        console.error("Details:", insertError?.details);
+        console.error("Hint:", insertError?.hint);
+        
+        // Messages d'erreur plus explicites
+        let errorMessage = "Impossible d'enregistrer la question.";
+        
+        const errorMsg = insertError?.message || "";
+        const errorCode = insertError?.code || "";
+        
+        if (errorCode === "42501" || errorMsg.includes("permission") || errorMsg.includes("policy") || errorMsg.includes("RLS")) {
+          errorMessage = "Erreur de permissions RLS. Vérifie que tu es bien connecté en tant qu'admin et que les politiques RLS sont correctement configurées dans Supabase. Exécute le script fix-questions-rls.sql.";
+        } else if (errorMsg.includes("null value") || errorMsg.includes("not null") || errorMsg.includes("violates not-null")) {
+          errorMessage = "Un champ requis est manquant. Assure-toi de remplir au moins le titre.";
+        } else if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError") || errorMsg.includes("ERR_CONNECTION")) {
+          errorMessage = "Erreur de connexion. Vérifie ta connexion internet et les variables d'environnement Supabase.";
+        } else if (errorMsg.includes("duplicate") || errorMsg.includes("unique")) {
+          errorMessage = "Une question similaire existe déjà.";
+        } else if (errorMsg) {
+          errorMessage = `Erreur: ${errorMsg}`;
+        } else {
+          errorMessage = "Impossible d'enregistrer la question. Vérifie la console pour plus de détails.";
+        }
+        
+        setError(errorMessage);
       } else {
+        console.log("✅ Question créée avec succès:", data);
         setSuccess("Question enregistrée avec succès.");
         // Retour au tableau admin après un court délai
         setTimeout(() => {
           router.push("/admin");
         }, 800);
       }
+    } catch (err) {
+      console.error("❌ Erreur inattendue (catch):", err);
+      console.error("Type:", typeof err);
+      console.error("Stringifié:", JSON.stringify(err, null, 2));
+      setError(`Une erreur inattendue s'est produite: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSubmitting(false);
     }

@@ -49,7 +49,7 @@ export default function LoginPage() {
       setError(errorMessage);
       setLoading(false);
     } else {
-      // Connexion réussie
+      // Connexion réussie - rediriger vers la page d'accueil
       setLoading(false);
       router.push("/");
       router.refresh();

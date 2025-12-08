@@ -70,6 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq("id", userId)
         .single();
 
+      // Gérer les erreurs réseau
+      if (error && (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError") || error.message?.includes("ERR_CONNECTION"))) {
+        console.error("Erreur réseau lors de la récupération du profil:", error);
+        console.error("Vérifie que les variables d'environnement Supabase sont correctement configurées.");
+        setLoading(false);
+        return;
+      }
+
       if (error) {
         // Si le profil n'existe pas (code PGRST116 ou message indiquant aucune ligne)
         const isProfileNotFound = 
@@ -119,6 +127,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             hint: error.hint,
           });
           
+          // Si c'est une erreur réseau, ne pas essayer de créer le profil
+          if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError") || error.message?.includes("ERR_CONNECTION")) {
+            console.error("❌ Erreur réseau: Impossible de se connecter à Supabase");
+            console.error("👉 Vérifie:");
+            console.error("   1. Que les variables d'environnement sont définies dans .env.local");
+            console.error("   2. Que tu as redémarré le serveur après avoir modifié .env.local");
+            console.error("   3. Que ta connexion internet fonctionne");
+            setLoading(false);
+            return;
+          }
+
           // Essayer quand même de créer le profil si c'est une erreur de permission ou autre
           // Cela peut arriver si le profil n'existe pas mais l'erreur n'est pas PGRST116
           console.log("Tentative de création du profil après erreur...");
@@ -168,6 +187,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err) {
       console.error("Erreur fetchProfile (catch):", err);
+      if (err instanceof Error && (err.message.includes("Failed to fetch") || err.message.includes("NetworkError"))) {
+        console.error("❌ Erreur réseau détectée. Vérifie ta connexion et les variables d'environnement.");
+      }
     } finally {
       setLoading(false);
     }
