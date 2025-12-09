@@ -13,6 +13,21 @@ type FormState = {
   visible: boolean;
 };
 
+const THEMES = [
+  "examen",
+  "stage",
+  "projet tutoré",
+  "auditoire",
+  "aumonerie",
+  "promotion",
+  "faculté",
+  "université",
+  "proposition",
+  "opportunité",
+  "activité",
+  "election",
+];
+
 export default function AdminNewQuestionPage() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>({
@@ -163,19 +178,22 @@ export default function AdminNewQuestionPage() {
           <div className="space-y-1">
             <label className="text-sm font-medium text-black">
               Thématique
-              <span className="ml-1 text-xs font-normal text-black/70">
-                (optionnel)
-              </span>
             </label>
-            <input
-              type="text"
+            <select
               value={form.theme}
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, theme: event.target.value }))
               }
-              placeholder="Ex : Examens, Scolarité, Stages…"
               className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
+              required
+            >
+              <option value="">Choisir une thématique</option>
+              {THEMES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-1">

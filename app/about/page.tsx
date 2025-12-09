@@ -27,9 +27,9 @@ export default function AboutPage() {
           Comment fonctionne la plateforme
         </h1>
         <p className="text-sm text-black/80">
-          Cette application rassemble les réponses des étudiants aux enquêtes de
-          la faculté d’économie. Les données sont importées à partir des exports
-          Google Forms, contrôlées puis publiées pour diffusion interne.
+          Plateforme de communication entre les étudiants et la présidence
+          facultaire : soumission de questions, modération par la Préfecture,
+          publication officielle et interactions (likes).
         </p>
       </header>
 
@@ -50,10 +50,10 @@ export default function AboutPage() {
           Processus résumé
         </h3>
         <ol className="mt-3 list-decimal space-y-2 pl-5">
-          <li>Export des réponses Google Forms (CSV/Excel).</li>
-          <li>Import contrôlé par l’administration via l’espace sécurisé.</li>
-          <li>Nettoyage automatique + enrichissement des métadonnées.</li>
-          <li>Publication sur la plateforme avec filtres et recherche.</li>
+          <li>Soumission des questions par les étudiants (formulaire dédié).</li>
+          <li>Modération et réponse par la Préfecture (espace sécurisé).</li>
+          <li>Publication officielle avec filtres, recherche et likes.</li>
+          <li>Suivi et diffusion via la chaîne WhatsApp de la Préfecture.</li>
         </ol>
       </div>
     </section>

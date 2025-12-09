@@ -23,45 +23,85 @@ type LikeData = {
   userLike: 'like' | 'dislike' | null;
 };
 
+const PAGE_SIZE = 10;
+
+const THEMES = [
+  "examen",
+  "stage",
+  "projet tutoré",
+  "auditoire",
+  "aumonerie",
+  "promotion",
+  "faculté",
+  "université",
+  "proposition",
+  "opportunité",
+  "activité",
+  "election",
+];
+
 export default function QuestionsPage() {
   const { user } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [search, setSearch] = useState("");
   const [themeFilter, setThemeFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ titre: "", theme: "", description: "" });
+  const [formData, setFormData] = useState({ theme: "", description: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     const fetchQuestions = async () => {
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
       const { data, error } = await supabase
         .from("questions")
         .select("id, titre, description, theme, texte_reponse, intitule_question, cree_le, statut, visible")
         .eq("visible", true)
-        .order("cree_le", { ascending: false });
+        .order("cree_le", { ascending: false })
+        .range(from, to);
 
       if (error) {
         console.error("Erreur Supabase:", error);
         return;
       }
 
-      setQuestions((data as Question[]) || []);
+      const fetched = (data as Question[]) || [];
+      if (page === 0) {
+        setQuestions(fetched);
+      } else {
+        setQuestions((prev) => [...prev, ...fetched]);
+      }
+      setHasMore(fetched.length === PAGE_SIZE);
     };
 
     fetchQuestions();
-  }, []);
+  }, [page]);
 
   const handleSubmitQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
+    if (!formData.description.trim()) {
+      alert("La description de la question est obligatoire.");
+      return;
+    }
+
+    if (!formData.theme) {
+      alert("Veuillez sélectionner une thématique.");
+      return;
+    }
+
     setSubmitting(true);
+    // Utiliser les 100 premiers caractères de la description comme titre
+    const titreCourt = formData.description.trim().substring(0, 100);
     const { error } = await supabase
       .from("questions")
       .insert({
-        titre: formData.titre.trim(),
-        intitule_question: formData.description.trim() || formData.titre.trim(),
-        theme: formData.theme.trim() || null,
+        titre: titreCourt,
+        intitule_question: formData.description.trim(),
+        theme: formData.theme,
         statut: "en_attente",
         visible: false,
         auteur_id: user.id,
@@ -71,16 +111,21 @@ export default function QuestionsPage() {
       console.error("Erreur soumission question:", error);
       alert("Erreur lors de la soumission. Réessaie.");
     } else {
-      setFormData({ titre: "", theme: "", description: "" });
+      setFormData({ theme: "", description: "" });
       setShowForm(false);
-      // Recharger les questions
-      const { data } = await supabase
-        .from("questions")
-        .select("id, titre, description, theme, texte_reponse, intitule_question, cree_le, statut, visible")
-        .eq("visible", true)
-        .order("cree_le", { ascending: false });
-      if (data) setQuestions(data);
-      alert("Question soumise avec succès ! Elle sera examinée par la préfacture.");
+      // Recharger depuis le début après soumission
+      setPage(0);
+      // Notifier les admins (best-effort)
+      fetch("/api/notify-new-question", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          titre: titreCourt,
+          theme: formData.theme,
+          description: formData.description,
+        }),
+      }).catch(() => {});
+      alert("Question soumise avec succès ! Elle sera examinée par la préfecture.");
     }
     setSubmitting(false);
   };
@@ -127,6 +172,25 @@ export default function QuestionsPage() {
         </div>
       </div>
 
+      {/* Bloc WhatsApp fixe */}
+      <div className="rounded-2xl border border-green-100 bg-green-50/40 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold uppercase tracking-wide text-green-700">
+            Chaîne WhatsApp de la Préfecture
+          </p>
+          <p className="text-sm text-green-900/80">
+            Retrouve les annonces et réponses importantes partagées par la Préfecture.
+          </p>
+        </div>
+        <Link
+          href="https://whatsapp.com/channel/0029VbA5YolCRs1rAi9zny1O"
+          target="_blank"
+          className="inline-flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-500"
+        >
+          Ouvrir WhatsApp
+        </Link>
+      </div>
+
       {/* Formulaire de soumission de question */}
       {showForm && user && (
         <div className="rounded-2xl border border-blue-200 bg-blue-50/30 p-6 shadow-sm">
@@ -134,44 +198,38 @@ export default function QuestionsPage() {
           <form onSubmit={handleSubmitQuestion} className="space-y-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-black">
-                Titre de la question *
+                Thématique *
               </label>
-              <input
-                type="text"
-                value={formData.titre}
-                onChange={(e) => setFormData({ ...formData, titre: e.target.value })}
-                required
-                placeholder="Ex: Report de l'examen de macroéconomie"
-                className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-black">
-                Thématique (optionnel)
-              </label>
-              <input
-                type="text"
+              <select
                 value={formData.theme}
                 onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
-                placeholder="Ex: Examens, Scolarité, Stages..."
+                required
                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
+              >
+                <option value="">Sélectionner une thématique</option>
+                {THEMES.map((t) => (
+                  <option key={t} value={t}>
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-black">
-                Description détaillée (optionnel)
+                Description de la question *
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-                placeholder="Décris ta question plus en détail si nécessaire..."
+                required
+                rows={5}
+                placeholder="Décris ta question en détail..."
                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <button
               type="submit"
-              disabled={submitting || !formData.titre.trim()}
+              disabled={submitting || !formData.description.trim() || !formData.theme}
               className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? "Envoi..." : "Soumettre la question"}
@@ -217,6 +275,16 @@ export default function QuestionsPage() {
           {filteredQuestions.map((q) => (
             <QuestionCard key={q.id} question={q} />
           ))}
+          {hasMore && filteredQuestions.length >= PAGE_SIZE && (
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:border-blue-500 hover:text-blue-600"
+              >
+                Voir plus
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -375,7 +443,7 @@ function QuestionCard({ question }: { question: Question }) {
               <span className="text-xs font-bold text-white">F</span>
             </div>
             <div>
-              <p className="text-xs font-semibold text-black">Faculté d&apos;économie</p>
+              <p className="text-xs font-semibold text-black">Présidence facultaire</p>
               <p className="text-xs text-black/60">Réponse officielle</p>
             </div>
           </div>

@@ -29,7 +29,7 @@ export default function RootLayout({
         className={`${poppins.variable} antialiased bg-white text-black`}
       >
         <AuthProvider>
-          <div className="min-h-screen bg-white">
+          <div className="min-h-screen bg-white relative">
             <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6 lg:px-8">
               <MainHeader />
 
@@ -184,7 +184,7 @@ export default function RootLayout({
                       {/* Copyright */}
                       <div className="text-sm text-blue-800/70 text-center md:text-left">
                         <p className="font-medium text-blue-900">
-                          © {new Date().getFullYear()} Faculté d&apos;économie – Université Pédagogique
+                          © {new Date().getFullYear()} Faculté d&apos;économie – upc
                         </p>
                         <p className="text-xs mt-1">
                           Tous droits réservés. Plateforme de communication – Présidente de la faculté.
@@ -199,10 +199,34 @@ export default function RootLayout({
                         <span>Plateforme officielle</span>
                       </div>
                     </div>
+                    <div className="mt-4 text-xs text-blue-800/70 text-center md:text-left">
+                      Design by Dbz —{" "}
+                      <a
+                        href="https://www.linkedin.com/in/david-debuze-a91a7a32a/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-blue-700 hover:text-blue-500"
+                      >
+                        David Debuze
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
             </footer>
+
+            {/* Bouton WhatsApp flottant (fixe sur toutes les pages) */}
+            <Link
+              href="https://whatsapp.com/channel/0029VbA5YolCRs1rAi9zny1O"
+              target="_blank"
+              className="fixed bottom-5 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-green-500/30 transition hover:bg-green-500"
+              aria-label="Chaîne WhatsApp de la Préfecture"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.04 2c-5.5 0-9.96 4.45-9.96 9.94 0 1.75.46 3.46 1.34 4.97L2 22l5.22-1.38a9.95 9.95 0 0 0 4.82 1.23h.01c5.49 0 9.95-4.45 9.95-9.94A9.89 9.89 0 0 0 12.04 2Zm5.85 13.72c-.25.7-1.45 1.33-2 1.38-.51.05-1.15.07-1.86-.12-.43-.12-.98-.31-1.69-.6-2.98-1.3-4.92-4.33-5.07-4.53-.15-.2-1.21-1.61-1.21-3.07 0-1.46.77-2.18 1.05-2.47.28-.29.62-.36.83-.36h.6c.19 0 .44-.07.69.53.25.6.86 2.08.93 2.23.08.15.12.33.02.53-.1.2-.15.33-.3.51-.15.18-.32.4-.46.54-.15.15-.3.31-.13.61.18.3.8 1.32 1.7 2.14 1.17 1.04 2.16 1.37 2.47 1.52.31.15.5.13.69-.08.19-.2.79-.92 1-1.24.21-.32.43-.26.73-.16.3.1 1.92.91 2.25 1.07.33.15.55.24.63.38.08.15.08.86-.17 1.57Z" />
+              </svg>
+              <span className="hidden sm:inline">WhatsApp Préfecture</span>
+            </Link>
           </div>
         </div>
         </AuthProvider>

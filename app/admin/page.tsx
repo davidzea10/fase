@@ -23,10 +23,20 @@ export default function AdminDashboardPage() {
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [responseText, setResponseText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    enAttente: 0,
+    repondu: 0,
+    likes: 0,
+  });
 
   useEffect(() => {
     fetchQuestions();
   }, [filter]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
   const fetchQuestions = async () => {
     let query = supabase
@@ -48,6 +58,29 @@ export default function AdminDashboardPage() {
     }
 
     setQuestions((data as Question[]) || []);
+  };
+
+  const fetchStats = async () => {
+    // Total, en attente, répondu
+    const { data, error } = await supabase.rpc("questions_counts");
+    const total = data?.total ?? 0;
+    const enAttente = data?.en_attente ?? 0;
+    const repondu = data?.repondu ?? 0;
+    if (error) {
+      console.error("Erreur stats questions:", error);
+    }
+
+    // Likes
+    const { count: likesCount } = await supabase
+      .from("question_likes")
+      .select("id", { count: "exact", head: true });
+
+    setStats({
+      total,
+      enAttente,
+      repondu,
+      likes: likesCount || 0,
+    });
   };
 
   const handleRespond = async (questionId: string) => {
@@ -162,6 +195,14 @@ export default function AdminDashboardPage() {
             Ajouter une question
           </Link>
         </div>
+      </div>
+
+      {/* Statistiques rapides */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total questions" value={stats.total} color="blue" />
+        <StatCard label="En attente" value={stats.enAttente} color="orange" />
+        <StatCard label="Répondues" value={stats.repondu} color="green" />
+        <StatCard label="Total likes" value={stats.likes} color="purple" />
       </div>
 
       {/* Liste des questions */}
@@ -289,6 +330,21 @@ export default function AdminDashboardPage() {
           ))
         )}
       </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, color }: { label: string; value: number; color: "blue" | "orange" | "green" | "purple" }) {
+  const colors: Record<typeof color, { bg: string; text: string }> = {
+    blue: { bg: "bg-blue-50", text: "text-blue-700" },
+    orange: { bg: "bg-orange-50", text: "text-orange-700" },
+    green: { bg: "bg-green-50", text: "text-green-700" },
+    purple: { bg: "bg-purple-50", text: "text-purple-700" },
+  };
+  return (
+    <div className={`rounded-xl border border-black/5 ${colors[color].bg} p-4 shadow-sm`}>
+      <p className="text-xs font-semibold uppercase tracking-wide text-black/60">{label}</p>
+      <p className={`mt-2 text-2xl font-bold ${colors[color].text}`}>{value}</p>
     </div>
   );
 }

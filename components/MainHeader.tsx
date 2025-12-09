@@ -9,6 +9,7 @@ const navigation = [
   { href: "/", label: "Accueil" },
   { href: "/questions", label: "Questions" },
   { href: "/about", label: "À propos" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export function MainHeader() {
@@ -44,11 +45,18 @@ export function MainHeader() {
           type="button"
           className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-black shadow-sm transition hover:border-blue-500 hover:text-blue-600 md:hidden"
           onClick={() => setOpen((prev) => !prev)}
-          aria-label="Ouvrir le menu de navigation"
+          aria-label={open ? "Fermer le menu de navigation" : "Ouvrir le menu de navigation"}
+          aria-expanded={open}
         >
-          <span className="h-0.5 w-5 rounded-full bg-current" />
-          <span className="mt-1 h-0.5 w-5 rounded-full bg-current" />
-          <span className="mt-1 h-0.5 w-5 rounded-full bg-current" />
+          <span
+            className={`block h-0.5 w-5 rounded-full bg-current transition-transform ${open ? "translate-y-1.5 rotate-45" : ""}`}
+          />
+          <span
+            className={`block h-0.5 w-5 rounded-full bg-current transition-opacity ${open ? "opacity-0" : "mt-1"}`}
+          />
+          <span
+            className={`block h-0.5 w-5 rounded-full bg-current transition-transform ${open ? "-translate-y-1.5 -rotate-45" : "mt-1"}`}
+          />
         </button>
 
         {/* Navigation desktop */}

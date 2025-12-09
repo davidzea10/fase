@@ -48,7 +48,8 @@ export default function Home() {
         .from("questions")
         .select("id, titre, description, theme, texte_reponse, intitule_question, cree_le, statut, visible")
         .eq("visible", true)
-        .order("cree_le", { ascending: false });
+        .order("cree_le", { ascending: false })
+        .limit(5); // Afficher seulement les 5 premières sur l'accueil
 
       if (error) {
         console.error("Erreur Supabase:", error);
@@ -115,18 +116,11 @@ export default function Home() {
             Initiative de la présidente de facultaire
           </p>
           <h1 className="text-2xl font-semibold text-black md:text-3xl">
-            Une plateforme de communication ouverte entre la faculté et ses étudiants
-          </h1>
+          Un espace de communication entre la présidente facultaire et les étudiants</h1>
           <p className="text-sm text-black/80 md:text-base">
-            La présidente de faculté, Sabrina Penenge, met à disposition cet
-            espace de questions / réponses pour faciliter le dialogue, clarifier
-            les informations académiques et valoriser les retours des étudiants.
-          </p>
+          La présidente de faculté, Sabrina Penenge, met à disposition des étudiants de Fasé une plate-forme de communication où ces derniers pourront poser leurs différentes questions en vue d’obtenir des réponses mais aussi obtenir les informations pour faciliter la communication, clarifier les informations académiques et valoriser les retours des étudiants. </p>
           <p className="text-sm text-black/80">
-            Les questions sont centralisées, structurées par thématique et
-            accompagnées de réponses officielles. Les identités des étudiants
-            ne sont pas affichées : seul le contenu compte.
-          </p>
+          Les questions sont centralisées, structurées par thématique et accompagnées de réponses officielles. Les identités des étudiants ne sont pas affichées : seul le contenu compte.</p>
 
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
@@ -145,13 +139,13 @@ export default function Home() {
         </div>
 
         <div className="flex items-center justify-center md:justify-end">
-          <div className="relative w-44 max-w-full rounded-3xl bg-white sm:w-56">
+            <div className="relative w-52 max-w-full rounded-3xl bg-white sm:w-64">
             <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl bg-black/5">
               <Image
                 src="/presidente1.jpg"
                 alt="Sabrina Penenge, présidente de faculté"
                 fill
-                sizes="(min-width: 768px) 224px, 176px"
+                sizes="(min-width: 768px) 256px, 208px"
                 className="object-cover"
               />
             </div>
@@ -189,6 +183,16 @@ export default function Home() {
                     <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
                   </svg>
                 </a>
+                <a
+                  href="#"
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-sky-500 text-white hover:scale-110 transition-transform"
+                  aria-label="Twitter de Sabrina Penenge"
+                  title="Twitter (bientôt)"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.633 7.997c.013.176.013.352.013.529 0 5.39-4.103 11.6-11.6 11.6-2.305 0-4.45-.676-6.253-1.84.321.037.63.05.964.05a8.18 8.18 0 0 0 5.074-1.748 4.09 4.09 0 0 1-3.817-2.835c.25.038.5.063.763.063.366 0 .733-.05 1.076-.138a4.084 4.084 0 0 1-3.276-4.01v-.05c.54.3 1.164.489 1.828.514a4.078 4.078 0 0 1-1.819-3.4c0-.751.202-1.44.553-2.04a11.6 11.6 0 0 0 8.417 4.27 4.606 4.606 0 0 1-.101-.936A4.086 4.086 0 0 1 18.09 5.9a8.045 8.045 0 0 0 2.59-.989 4.07 4.07 0 0 1-1.796 2.253 8.175 8.175 0 0 0 2.35-.64 8.79 8.79 0 0 1-1.601 1.473z" />
+                  </svg>
+                </a>
               </div>
             </div>
           </div>
@@ -224,6 +228,25 @@ export default function Home() {
         </label>
       </section>
 
+      {/* Bloc WhatsApp fixe */}
+      <section className="rounded-2xl border border-green-100 bg-green-50/40 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold uppercase tracking-wide text-green-700">
+            Chaîne officielle WhatsApp
+          </p>
+          <p className="text-sm text-green-900/80">
+            Suivez les annonces de la Préfecture et restez informé des réponses publiées.
+          </p>
+        </div>
+        <Link
+          href="https://whatsapp.com/channel/0029VbA5YolCRs1rAi9zny1O"
+          target="_blank"
+          className="inline-flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-500"
+        >
+          Ouvrir WhatsApp
+        </Link>
+      </section>
+
       {/* Liste Q/R style Facebook */}
       <section className="space-y-4">
         <div className="flex flex-col gap-2 text-sm text-black/80 sm:flex-row sm:items-center sm:justify-between">
@@ -245,9 +268,20 @@ export default function Home() {
           </div>
         ) : (
           <div className="space-y-4">
-            {filtered.map((q) => (
+            {filtered.slice(0, 5).map((q) => (
               <QuestionCard key={q.id} question={q} />
             ))}
+            <div className="pt-2">
+              <Link
+                href="/questions"
+                className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-400 hover:bg-blue-100"
+              >
+                Voir plus de questions
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
           </div>
         )}
       </section>
@@ -400,7 +434,7 @@ function QuestionCard({ question }: { question: Question }) {
               <span className="text-xs font-bold text-white">F</span>
             </div>
             <div>
-              <p className="text-xs font-semibold text-black">Faculté d&apos;économie</p>
+              <p className="text-xs font-semibold text-black">Présidence facultaire</p>
               <p className="text-xs text-black/60">Réponse officielle</p>
             </div>
           </div>
