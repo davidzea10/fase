@@ -16,13 +16,17 @@ type Question = {
   cree_le: string;
 };
 
+const PAGE_SIZE = 20;
+
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [displayedQuestions, setDisplayedQuestions] = useState<Question[]>([]);
   const [filter, setFilter] = useState<"all" | "en_attente" | "repondu">("all");
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [responseText, setResponseText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [stats, setStats] = useState({
     total: 0,
     enAttente: 0,
@@ -37,6 +41,12 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     fetchStats();
   }, []);
+
+  useEffect(() => {
+    // Afficher les 20 premières questions
+    setDisplayedQuestions(questions.slice(0, PAGE_SIZE));
+    setHasMore(questions.length > PAGE_SIZE);
+  }, [questions]);
 
   const fetchQuestions = async () => {
     let query = supabase
@@ -58,6 +68,12 @@ export default function AdminDashboardPage() {
     }
 
     setQuestions((data as Question[]) || []);
+  };
+
+  const loadMore = () => {
+    const nextCount = displayedQuestions.length + PAGE_SIZE;
+    setDisplayedQuestions(questions.slice(0, nextCount));
+    setHasMore(nextCount < questions.length);
   };
 
   const fetchStats = async () => {
@@ -104,7 +120,7 @@ export default function AdminDashboardPage() {
     } else {
       setEditingQuestion(null);
       setResponseText("");
-      fetchQuestions();
+      await fetchQuestions();
     }
     setLoading(false);
   };
@@ -120,7 +136,7 @@ export default function AdminDashboardPage() {
       console.error("Erreur publication:", error);
       alert("Erreur lors de la publication.");
     } else {
-      fetchQuestions();
+      await fetchQuestions();
     }
     setLoading(false);
   };
@@ -140,7 +156,7 @@ export default function AdminDashboardPage() {
       console.error("Erreur suppression:", error);
       alert("Erreur lors de la suppression.");
     } else {
-      fetchQuestions();
+      await fetchQuestions();
     }
     setLoading(false);
   };
@@ -207,7 +223,7 @@ export default function AdminDashboardPage() {
 
       {/* Liste des questions */}
       <div className="space-y-4">
-        {questions.length === 0 ? (
+        {displayedQuestions.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-black/10 bg-white p-8 text-center">
             <p className="text-sm text-black/60">
               {filter === "en_attente"
@@ -218,7 +234,8 @@ export default function AdminDashboardPage() {
             </p>
           </div>
         ) : (
-          questions.map((q) => (
+          <>
+            {displayedQuestions.map((q) => (
             <div
               key={q.id}
               className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm"
@@ -327,7 +344,19 @@ export default function AdminDashboardPage() {
                 )}
               </div>
             </div>
-          ))
+          ))}
+          {hasMore && (
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={loadMore}
+                disabled={loading}
+                className="rounded-full border border-black/10 bg-white px-6 py-2 text-sm font-semibold text-black transition hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50"
+              >
+                {loading ? "Chargement..." : "Voir plus"}
+              </button>
+            </div>
+          )}
+          </>
         )}
       </div>
     </div>

@@ -41,6 +41,15 @@ const activities: Activity[] = [
     location: "UPC - Université Protestante au Congo",
     images: ["/meet1.jpg", "/meet2.jpg", "/meet3.jpg", "/meet4.jpg", "/meet5.jpg"],
   },
+  {
+    id: "4",
+    title: "Fase Cup",
+    description: "Une journée explosive autour du sport, du fun et de la compétition ! Activités au programme : PlayStation, Music, Basket, Foot, Échecs, Carte, Billard, Scrabble, Dame, Babyfoot. Rejoignez-nous pour une journée mémorable de compétition et de divertissement.",
+    date: "22/11/2025",
+    time: "12H30",
+    location: "Terrain Bokeleale / Lisanga",
+    images: ["/fasecup1.jpg", "/fasecup2.jpg"],
+  },
 ];
 
 export default function ActivitesPage() {
@@ -358,26 +367,6 @@ function ActivityCard({ activity, index }: { activity: Activity; index: number }
                     {activity.location}
                   </p>
                 </div>
-              </div>
-            </div>
-
-            {/* Call to action (optionnel) */}
-            <div className="pt-2">
-              <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:scale-105">
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-                <span>Événement à venir</span>
               </div>
             </div>
           </div>

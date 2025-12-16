@@ -199,6 +199,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section Activités */}
+      <ActivitiesCarouselSection />
+
       {/* Barre de recherche + filtre thème */}
       <section className="grid gap-4 rounded-2xl border border-black/5 bg-white p-4 md:grid-cols-[2fr,1fr] md:p-5">
         <label className="flex flex-col text-sm text-black">
@@ -249,16 +252,21 @@ export default function Home() {
 
       {/* Liste Q/R style Facebook */}
       <section className="space-y-4">
-        <div className="flex flex-col gap-2 text-sm text-black/80 sm:flex-row sm:items-center sm:justify-between">
-          <span className="font-medium">
-            {filtered.length} question(s) trouvée(s)
-          </span>
-          <Link
-            href="/about"
-            className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
-          >
-            En savoir plus sur le fonctionnement
-          </Link>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-black md:text-3xl">
+            Questions des étudiants sur la faculté
+          </h2>
+          <div className="flex flex-col gap-2 text-sm text-black/80 sm:flex-row sm:items-center sm:justify-between">
+            <span className="font-medium">
+              {filtered.length} question(s) trouvée(s)
+            </span>
+            <Link
+              href="/about"
+              className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
+            >
+              En savoir plus sur le fonctionnement
+            </Link>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
@@ -506,5 +514,157 @@ function QuestionCard({ question }: { question: Question }) {
         </button>
       </div>
     </article>
+  );
+}
+
+// Composant Section Activités avec Carousel
+function ActivitiesCarouselSection() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const activityImages = [
+    "/activite1.jpg",
+    "/forum.jpg",
+    "/meet1.jpg",
+    "/meet2.jpg",
+    "/meet3.jpg",
+    "/meet4.jpg",
+    "/meet5.jpg",
+    "/fasecup1.jpg",
+    "/fasecup2.jpg",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % activityImages.length);
+    }, 4000); // Change d'image toutes les 4 secondes
+
+    return () => clearInterval(interval);
+  }, [activityImages.length]);
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % activityImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + activityImages.length) % activityImages.length);
+  };
+
+  return (
+    <section className="grid gap-8 rounded-3xl border border-black/5 bg-gradient-to-br from-blue-50 via-blue-100/50 to-indigo-50 p-6 shadow-lg md:grid-cols-[1fr_1fr] md:p-8">
+      {/* Texte à gauche */}
+      <div className="flex flex-col justify-center space-y-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
+          Événements organisés
+        </p>
+        <h2 className="text-2xl font-bold text-black md:text-3xl">
+          Nos Activités
+        </h2>
+        <p className="text-sm leading-relaxed text-black/80 md:text-base">
+          Découvrez les événements et activités organisés par la présidence facultaire. 
+          Des rencontres, des forums, des compétitions sportives et bien plus encore pour 
+          renforcer le dialogue et l&apos;engagement étudiant.
+        </p>
+        <p className="text-sm text-black/70">
+          Rejoignez-nous pour vivre des moments mémorables et enrichissants au sein de la FASE.
+        </p>
+        <Link
+          href="/activites"
+          className="inline-flex w-fit items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:scale-105 hover:shadow-xl"
+        >
+          <span>Voir tous les détails</span>
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </Link>
+      </div>
+
+      {/* Carousel d'images à droite */}
+      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-black/5 shadow-xl">
+        {activityImages.map((img, idx) => (
+          <div
+            key={idx}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              idx === currentImageIndex
+                ? "opacity-100 z-10"
+                : "opacity-0 z-0"
+            }`}
+          >
+            <Image
+              src={img}
+              alt={`Activité ${idx + 1}`}
+              fill
+              sizes="(min-width: 768px) 50vw, 100vw"
+              className="object-cover object-center"
+              priority={idx === 0}
+            />
+          </div>
+        ))}
+
+        {/* Navigation */}
+        <button
+          onClick={prevImage}
+          className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:scale-110"
+          aria-label="Image précédente"
+        >
+          <svg
+            className="h-5 w-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <button
+          onClick={nextImage}
+          className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:scale-110"
+          aria-label="Image suivante"
+        >
+          <svg
+            className="h-5 w-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+
+        {/* Indicateurs */}
+        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+          {activityImages.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentImageIndex(idx)}
+              className={`h-2 rounded-full transition-all ${
+                idx === currentImageIndex
+                  ? "w-8 bg-white"
+                  : "w-2 bg-white/50 hover:bg-white/75"
+              }`}
+              aria-label={`Aller à l'image ${idx + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
