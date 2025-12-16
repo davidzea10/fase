@@ -151,12 +151,12 @@ export default function Home() {
             </div>
             <div className="mt-3 space-y-2">
               <div className="space-y-0.5">
-                <p className="text-sm font-semibold text-black">
-                  Sabrina Penenge
-                </p>
-                <p className="text-xs text-black/80">
-                  Présidente de la faculté d&apos;économie
-                </p>
+              <p className="text-sm font-semibold text-black">
+                Sabrina Penenge
+              </p>
+              <p className="text-xs text-black/80">
+                Présidente de la faculté d&apos;économie
+              </p>
               </div>
               
               {/* Réseaux sociaux de la présidente */}
