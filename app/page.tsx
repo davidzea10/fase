@@ -549,9 +549,9 @@ function ActivitiesCarouselSection() {
   };
 
   return (
-    <section className="grid gap-8 rounded-3xl border border-black/5 bg-gradient-to-br from-blue-50 via-blue-100/50 to-indigo-50 p-6 shadow-lg md:grid-cols-[1fr_1fr] md:p-8">
-      {/* Texte à gauche */}
-      <div className="flex flex-col justify-center space-y-4">
+    <section className="space-y-6 rounded-3xl border border-black/5 bg-gradient-to-br from-blue-50 via-blue-100/50 to-indigo-50 p-6 shadow-lg md:p-8">
+      {/* Texte en haut */}
+      <div className="space-y-4">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
           Événements organisés
         </p>
@@ -587,8 +587,8 @@ function ActivitiesCarouselSection() {
         </Link>
       </div>
 
-      {/* Carousel d'images à droite */}
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-black/5 shadow-xl">
+      {/* Carousel d'images en dessous - pleine largeur */}
+      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-black/5 shadow-xl">
         {activityImages.map((img, idx) => (
           <div
             key={idx}
@@ -602,7 +602,7 @@ function ActivitiesCarouselSection() {
               src={img}
               alt={`Activité ${idx + 1}`}
               fill
-              sizes="(min-width: 768px) 50vw, 100vw"
+              sizes="100vw"
               className="object-cover object-center"
               priority={idx === 0}
             />
