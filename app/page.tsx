@@ -118,7 +118,7 @@ export default function Home() {
           <h1 className="text-2xl font-semibold text-black md:text-3xl">
           Un espace de communication entre la présidente facultaire et les étudiants</h1>
           <p className="text-sm text-black/80 md:text-base">
-          La présidente de faculté, Sabrina Penenge, met à disposition des étudiants de Fasé une plate-forme de communication où ces derniers pourront poser leurs différentes questions en vue d’obtenir des réponses mais aussi obtenir les informations pour faciliter la communication, clarifier les informations académiques et valoriser les retours des étudiants. </p>
+          La présidente facultaire, Sabrina Penenge, met à la disposition des etudiants de la Fasé une plateforme de communication leur permettant de poser leurs questions et d'accéder à des informations fiables, afin de faciliter les echanges, clarifier les informations academiques et valoriser les retours des etudiants. </p>
           <p className="text-sm text-black/80">
           Les questions sont centralisées, structurées par thématique et accompagnées de réponses officielles. Les identités des étudiants ne sont pas affichées : seul le contenu compte.</p>
 

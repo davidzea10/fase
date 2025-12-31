@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const navigation = [
   { href: "/", label: "Accueil" },
   { href: "/questions", label: "Questions" },
+  { href: "/battes", label: "Battes" },
   { href: "/activites", label: "Activités" },
   { href: "/about", label: "À propos" },
   { href: "/contact", label: "Contact" },
