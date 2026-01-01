@@ -102,9 +102,9 @@ export default function RootLayout({
                           </Link>
                         </li>
                         <li>
-                          <Link href="/battes" className="text-sm text-blue-800/80 hover:text-blue-600 transition-colors flex items-center gap-2 group">
+                          <Link href="/exercices" className="text-sm text-blue-800/80 hover:text-blue-600 transition-colors flex items-center gap-2 group">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 group-hover:bg-blue-600 transition-colors"></span>
-                            Battes
+                            Exercices
                           </Link>
                         </li>
                         <li>

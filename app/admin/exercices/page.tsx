@@ -19,7 +19,7 @@ type Document = {
 
 const NIVEAUX = ['L1', 'L2', 'L3', 'MASTER1', 'MASTER2'] as const;
 
-export default function AdminBattesPage() {
+export default function AdminExercicesPage() {
   const router = useRouter();
   const { user, profile, loading: authLoading } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -50,7 +50,7 @@ export default function AdminBattesPage() {
 
     if (error) {
       console.error("Erreur chargement documents:", error);
-      setError("Erreur lors du chargement des documents.");
+      setError("Erreur lors du chargement des exercices.");
     } else {
       setDocuments((data as Document[]) || []);
     }
@@ -89,7 +89,7 @@ export default function AdminBattesPage() {
     setError("");
 
     try {
-      // 1. Uploader le fichier dans Supabase Storage
+      // 1. Uploader le fichier dans Supabase Storage (bucket "battes" dans la BDD)
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `documents/${fileName}`;
@@ -147,12 +147,12 @@ export default function AdminBattesPage() {
   };
 
   const handleDelete = async (documentId: string, fileUrl: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce document ?")) {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cet exercice ?")) {
       return;
     }
 
     try {
-      // Extraire le chemin du fichier depuis l'URL
+      // Extraire le chemin du fichier depuis l'URL (bucket "battes" dans la BDD)
       const urlParts = fileUrl.split("/battes/");
       const filePath = urlParts.length > 1 ? `documents/${urlParts[1]}` : null;
 
@@ -208,13 +208,13 @@ export default function AdminBattesPage() {
       <div className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-semibold text-black">Gestion des Anciens Examens</h1>
+            <h1 className="text-3xl font-semibold text-black">Gestion des Exercices</h1>
             <p className="mt-2 text-sm text-black/80">
-              Téléchargez des anciens examens PDF que les étudiants pourront consulter et télécharger.
+              Téléchargez des exercices PDF que les étudiants pourront consulter et télécharger.
             </p>
           </div>
           <Link
-            href="/battes"
+            href="/exercices"
             className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
           >
             Voir la page publique
@@ -224,18 +224,18 @@ export default function AdminBattesPage() {
 
       {/* Formulaire d'upload */}
       <div className="rounded-2xl border border-blue-200 bg-blue-50/30 p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-black">Ajouter un ancien examen</h2>
+        <h2 className="mb-4 text-lg font-semibold text-black">Ajouter un exercice</h2>
         <form onSubmit={handleUpload} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium text-black">
-                Nom de l'examen *
+                Nom de l'exercice *
               </label>
               <input
                 type="text"
                 value={nom}
                 onChange={(e) => setNom(e.target.value)}
-                placeholder="Ex: Examen Mathématiques 2023"
+                placeholder="Ex: Exercice Mathématiques 2023"
                 required
                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
@@ -288,17 +288,17 @@ export default function AdminBattesPage() {
             disabled={uploading || !file || !nom.trim()}
             className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {uploading ? "Upload en cours..." : "Télécharger l'examen"}
+            {uploading ? "Upload en cours..." : "Télécharger l'exercice"}
           </button>
         </form>
       </div>
 
       {/* Liste des documents */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-black">Anciens examens existants ({documents.length})</h2>
+        <h2 className="text-lg font-semibold text-black">Exercices existants ({documents.length})</h2>
         {documents.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-black/10 bg-white p-8 text-center">
-            <p className="text-sm text-black/60">Aucun ancien examen téléchargé pour le moment.</p>
+            <p className="text-sm text-black/60">Aucun exercice téléchargé pour le moment.</p>
           </div>
         ) : (
           <div className="space-y-3">
