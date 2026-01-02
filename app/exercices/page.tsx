@@ -24,6 +24,8 @@ export default function ExercicesPage() {
   const [search, setSearch] = useState("");
   const [selectedNiveau, setSelectedNiveau] = useState<'all' | typeof NIVEAUX[number]>('all');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [expandedNiveaux, setExpandedNiveaux] = useState<Record<string, boolean>>({});
+  const [expandAll, setExpandAll] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -144,10 +146,62 @@ export default function ExercicesPage() {
         return;
       }
 
-      // Ouvrir l'URL signée dans un nouvel onglet pour téléchargement
+      // Télécharger le fichier (méthode compatible mobile et desktop)
       if (data?.signedUrl) {
         console.log("URL signée générée avec succès"); // Debug
-        window.open(data.signedUrl, "_blank");
+        
+        // Détecter si on est sur mobile iOS
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+          // Sur mobile, utiliser fetch + blob pour forcer le téléchargement
+          try {
+            const response = await fetch(data.signedUrl);
+            if (!response.ok) {
+              throw new Error('Erreur lors du téléchargement du fichier');
+            }
+            
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            
+            // Créer un lien temporaire et le cliquer
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = nom || 'document.pdf';
+            link.style.display = 'none';
+            
+            // Ajouter au DOM, cliquer, puis nettoyer
+            document.body.appendChild(link);
+            link.click();
+            
+            // Nettoyer après un court délai
+            setTimeout(() => {
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(blobUrl);
+            }, 100);
+            
+            // Sur iOS, ouvrir aussi dans un nouvel onglet comme fallback
+            if (isIOS) {
+              setTimeout(() => {
+                window.open(data.signedUrl, '_blank');
+              }, 500);
+            }
+          } catch (fetchError) {
+            console.error("Erreur téléchargement blob:", fetchError);
+            // Fallback: ouvrir directement l'URL
+            const link = document.createElement('a');
+            link.href = data.signedUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        } else {
+          // Sur desktop, ouvrir dans un nouvel onglet
+          window.open(data.signedUrl, "_blank");
+        }
       } else {
         alert("Erreur : impossible de générer l'URL de téléchargement");
       }
@@ -240,85 +294,144 @@ export default function ExercicesPage() {
 
       {/* Affichage par rubriques si "Tous" est sélectionné */}
       {selectedNiveau === 'all' ? (
-        <div className="space-y-8">
+        <div className="space-y-4">
+          {/* Bouton pour tout afficher/masquer */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => {
+                const newExpandAll = !expandAll;
+                setExpandAll(newExpandAll);
+                const newExpanded: Record<string, boolean> = {};
+                NIVEAUX.forEach((niv) => {
+                  newExpanded[niv] = newExpandAll;
+                });
+                setExpandedNiveaux(newExpanded);
+              }}
+              className="rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 hover:border-blue-300"
+            >
+              {expandAll ? "Tout masquer" : "Tout afficher"}
+            </button>
+          </div>
+
           {NIVEAUX.map((niv) => {
             const docs = documentsByNiveau[niv];
             if (docs.length === 0 && search) return null; // Ne pas afficher les rubriques vides si recherche active
             
+            const isExpanded = expandedNiveaux[niv] || false;
+            
             return (
-              <div key={niv} className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-semibold text-black">{niv}</h2>
-                  <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                    {docs.length} exercice{docs.length > 1 ? 's' : ''}
-                  </span>
-                </div>
-                {docs.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-black/10 bg-white p-8 text-center">
-                    <p className="text-sm text-black/60">
-                      Aucun exercice disponible pour {niv}.
-                    </p>
+              <div key={niv} className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
+                {/* En-tête cliquable */}
+                <button
+                  onClick={() => {
+                    setExpandedNiveaux((prev) => ({
+                      ...prev,
+                      [niv]: !prev[niv],
+                    }));
+                  }}
+                  className="w-full flex items-center justify-between p-4 hover:bg-black/5 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className={`h-5 w-5 text-black/60 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                    <h2 className="text-xl font-semibold text-black">{niv}</h2>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                      {docs.length} exercice{docs.length > 1 ? 's' : ''}
+                    </span>
                   </div>
-                ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {docs.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="group rounded-2xl border border-black/10 bg-white p-5 shadow-sm transition hover:shadow-lg"
-                      >
-                        <div className="mb-4 flex items-start gap-3">
-                          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-red-100 group-hover:bg-red-200 transition-colors">
-                            <svg
-                              className="h-7 w-7 text-red-600"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                              />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-black line-clamp-2">{doc.nom}</h3>
-                            <p className="mt-1 text-xs text-black/60">
-                              {formatFileSize(doc.taille_fichier)}
-                            </p>
-                            <p className="mt-1 text-xs text-black/50">
-                              {new Date(doc.cree_le).toLocaleDateString("fr-FR", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              })}
-                            </p>
-                          </div>
-                        </div>
+                </button>
 
-                        <button
-                          onClick={() => handleDownload(doc.fichier_url, doc.nom, doc.id)}
-                          disabled={downloadingId === doc.id}
-                          className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                            />
-                          </svg>
-                          Télécharger
-                        </button>
+                {/* Contenu (masqué par défaut) */}
+                {isExpanded && (
+                  <div className="border-t border-black/10 p-4">
+                    {docs.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-black/10 bg-white p-8 text-center">
+                        <p className="text-sm text-black/60">
+                          Aucun exercice disponible pour {niv}.
+                        </p>
                       </div>
-                    ))}
+                    ) : (
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {docs.map((doc) => (
+                          <div
+                            key={doc.id}
+                            className="group rounded-xl border border-black/10 bg-white p-5 shadow-sm transition hover:shadow-lg"
+                          >
+                            <div className="mb-4 flex items-start gap-3">
+                              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-red-100 group-hover:bg-red-200 transition-colors">
+                                <svg
+                                  className="h-7 w-7 text-red-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                  />
+                                </svg>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-black line-clamp-2">{doc.nom}</h3>
+                                <p className="mt-1 text-xs text-black/60">
+                                  {formatFileSize(doc.taille_fichier)}
+                                </p>
+                                <p className="mt-1 text-xs text-black/50">
+                                  {new Date(doc.cree_le).toLocaleDateString("fr-FR", {
+                                    day: "numeric",
+                                    month: "long",
+                                    year: "numeric",
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => handleDownload(doc.fichier_url, doc.nom, doc.id)}
+                              disabled={downloadingId === doc.id}
+                              className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {downloadingId === doc.id ? (
+                                <>
+                                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-700 border-t-transparent"></div>
+                                  <span>Génération...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                    />
+                                  </svg>
+                                  <span>Télécharger</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

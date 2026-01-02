@@ -44,10 +44,13 @@ export default function Home() {
     if (!user || loading) return;
 
     const fetchQuestions = async () => {
+      // Filtrer explicitement pour ne montrer QUE les questions publiques (approuvées/répondues)
+      // Exclure les questions en attente même si RLS les autorise
       const { data, error } = await supabase
         .from("questions")
         .select("id, titre, description, theme, texte_reponse, intitule_question, cree_le, statut, visible")
         .eq("visible", true)
+        .in("statut", ["approuve", "repondu"])
         .order("cree_le", { ascending: false })
         .limit(5); // Afficher seulement les 5 premières sur l'accueil
 
