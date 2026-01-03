@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
@@ -763,7 +763,7 @@ function MyQuestionCard({
   setEditFormData: (data: { theme: string; description: string }) => void;
   onSaveEdit: (questionId: string) => void;
   onCancelEdit: () => void;
-  getStatusBadge: (statut: string | null | undefined) => JSX.Element;
+  getStatusBadge: (statut: string | null | undefined) => React.ReactElement;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const questionTexte = question.intitule_question ?? question.titre;
