@@ -90,9 +90,9 @@ export default function QuestionsPage() {
     fetchQuestions();
   }, [page, activeTab]);
 
-  // Charger les questions de l'utilisateur (TOUTES, y compris en attente)
+  // Charger les questions de l'utilisateur automatiquement au chargement de la page
   useEffect(() => {
-    if (activeTab !== "my" || !user) return;
+    if (!user) return;
 
     const fetchMyQuestions = async () => {
       // Charger TOUTES les questions de l'utilisateur, quel que soit le statut
@@ -114,7 +114,7 @@ export default function QuestionsPage() {
     };
 
     fetchMyQuestions();
-  }, [activeTab, user]);
+  }, [user]);
 
   // Recharger les questions après modification/suppression
   const refreshQuestions = () => {

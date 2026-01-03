@@ -346,6 +346,19 @@ export default function AboutPage() {
               Reçois une notification par email lorsque ta question reçoit une réponse officielle.
             </p>
           </div>
+
+          <div className="rounded-xl border border-blue-200 bg-white p-5">
+            <div className="mb-2 flex items-center gap-2">
+              <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <h3 className="font-semibold text-black">Exercices et documents</h3>
+            </div>
+            <p className="text-sm text-black/80">
+              Télécharge les exercices et anciens examens (PDF) organisés par niveau (L1, L2, L3, MASTER1, MASTER2) 
+              pour t&apos;aider dans tes révisions.
+            </p>
+          </div>
         </div>
       </section>
     </div>

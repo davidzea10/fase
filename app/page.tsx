@@ -46,13 +46,11 @@ export default function Home() {
     const fetchQuestions = async () => {
       // Filtrer explicitement pour ne montrer QUE les questions publiques (approuvées/répondues)
       // Exclure les questions en attente même si RLS les autorise
-      const { data, error } = await supabase
+      const { data: questionsData, error } = await supabase
         .from("questions")
         .select("id, titre, description, theme, texte_reponse, intitule_question, cree_le, statut, visible")
         .eq("visible", true)
-        .in("statut", ["approuve", "repondu"])
-        .order("cree_le", { ascending: false })
-        .limit(5); // Afficher seulement les 5 premières sur l'accueil
+        .in("statut", ["approuve", "repondu"]);
 
       if (error) {
         console.error("Erreur Supabase:", error);
@@ -61,7 +59,33 @@ export default function Home() {
         return;
       }
 
-      setQuestions((data as Question[]) || []);
+      if (!questionsData || questionsData.length === 0) {
+        setQuestions([]);
+        return;
+      }
+
+      // Pour chaque question, compter le nombre total de réactions (likes + dislikes)
+      const questionsWithReactions = await Promise.all(
+        questionsData.map(async (question) => {
+          const { count: reactionsCount } = await supabase
+            .from("question_likes")
+            .select("id", { count: "exact", head: true })
+            .eq("question_id", question.id);
+
+          return {
+            ...question,
+            reactionsCount: reactionsCount || 0,
+          };
+        })
+      );
+
+      // Trier par nombre de réactions décroissant et prendre les 5 premières
+      const sortedQuestions = questionsWithReactions
+        .sort((a, b) => b.reactionsCount - a.reactionsCount)
+        .slice(0, 5)
+        .map(({ reactionsCount, ...question }) => question); // Retirer reactionsCount avant de stocker
+
+      setQuestions(sortedQuestions as Question[]);
     };
 
     fetchQuestions();
@@ -205,35 +229,7 @@ export default function Home() {
       {/* Section Activités */}
       <ActivitiesCarouselSection />
 
-      {/* Barre de recherche + filtre thème */}
-      <section className="grid gap-4 rounded-2xl border border-black/5 bg-white p-4 md:grid-cols-[2fr,1fr] md:p-5">
-        <label className="flex flex-col text-sm text-black">
-          Recherche
-          <input
-            type="text"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Rechercher dans les questions ou les réponses"
-            className="mt-1 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </label>
-
-        <label className="flex flex-col text-sm text-black">
-          Thématique
-          <select
-            value={themeFilter}
-            onChange={(event) => setThemeFilter(event.target.value)}
-            className="mt-1 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          >
-            {themes.map((theme) => (
-              <option key={theme} value={theme}>
-                {theme === "all" ? "Toutes les thématiques" : theme}
-              </option>
-            ))}
-          </select>
-        </label>
-      </section>
-
+    
       {/* Bloc WhatsApp fixe */}
       <section className="rounded-2xl border border-green-100 bg-green-50/40 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="space-y-1">
@@ -257,7 +253,7 @@ export default function Home() {
       <section className="space-y-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-black md:text-3xl">
-            Questions des étudiants sur la faculté
+           Quelques questions pertinentes des étudiants sur la faculté
           </h2>
           <div className="flex flex-col gap-2 text-sm text-black/80 sm:flex-row sm:items-center sm:justify-between">
             <span className="font-medium">

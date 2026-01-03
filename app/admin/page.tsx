@@ -32,6 +32,7 @@ export default function AdminDashboardPage() {
     enAttente: 0,
     repondu: 0,
     likes: 0,
+    users: 0,
   });
 
   useEffect(() => {
@@ -91,11 +92,17 @@ export default function AdminDashboardPage() {
       .from("question_likes")
       .select("id", { count: "exact", head: true });
 
+    // Nombre d'utilisateurs (profiles)
+    const { count: usersCount } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true });
+
     setStats({
       total,
       enAttente,
       repondu,
       likes: likesCount || 0,
+      users: usersCount || 0,
     });
   };
 
@@ -214,11 +221,12 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Statistiques rapides */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Total questions" value={stats.total} color="blue" />
         <StatCard label="En attente" value={stats.enAttente} color="orange" />
         <StatCard label="Répondues" value={stats.repondu} color="green" />
         <StatCard label="Total likes" value={stats.likes} color="purple" />
+        <StatCard label="Utilisateurs" value={stats.users} color="indigo" />
       </div>
 
       {/* Liste des questions */}
@@ -363,12 +371,13 @@ export default function AdminDashboardPage() {
   );
 }
 
-function StatCard({ label, value, color }: { label: string; value: number; color: "blue" | "orange" | "green" | "purple" }) {
+function StatCard({ label, value, color }: { label: string; value: number; color: "blue" | "orange" | "green" | "purple" | "indigo" }) {
   const colors: Record<typeof color, { bg: string; text: string }> = {
     blue: { bg: "bg-blue-50", text: "text-blue-700" },
     orange: { bg: "bg-orange-50", text: "text-orange-700" },
     green: { bg: "bg-green-50", text: "text-green-700" },
     purple: { bg: "bg-purple-50", text: "text-purple-700" },
+    indigo: { bg: "bg-indigo-50", text: "text-indigo-700" },
   };
   return (
     <div className={`rounded-xl border border-black/5 ${colors[color].bg} p-4 shadow-sm`}>

@@ -8,8 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 const navigation = [
   { href: "/", label: "Accueil" },
   { href: "/questions", label: "Questions" },
-  { href: "/exercices", label: "Exercices" },
   { href: "/activites", label: "Activités" },
+  { href: "/exercices", label: "Exercices" },
   { href: "/about", label: "À propos" },
   { href: "/contact", label: "Contact" },
 ];
@@ -42,52 +42,12 @@ export function MainHeader() {
           </div>
         </Link>
 
-        {/* Bouton hamburger (mobile) */}
-        <button
-          type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-black shadow-sm transition hover:border-blue-500 hover:text-blue-600 md:hidden"
-          onClick={() => setOpen((prev) => !prev)}
-          aria-label={open ? "Fermer le menu de navigation" : "Ouvrir le menu de navigation"}
-          aria-expanded={open}
-        >
-          <span
-            className={`block h-0.5 w-5 rounded-full bg-current transition-transform ${open ? "translate-y-1.5 rotate-45" : ""}`}
-          />
-          <span
-            className={`block h-0.5 w-5 rounded-full bg-current transition-opacity ${open ? "opacity-0" : "mt-1"}`}
-          />
-          <span
-            className={`block h-0.5 w-5 rounded-full bg-current transition-transform ${open ? "-translate-y-1.5 -rotate-45" : "mt-1"}`}
-          />
-        </button>
-
-        {/* Navigation desktop */}
-        <nav className="hidden flex-1 items-center justify-center gap-6 text-sm font-medium text-black/80 md:flex">
-          {navigation.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="border-b-2 border-transparent pb-1 transition hover:border-blue-500 hover:text-blue-600"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Actions utilisateur desktop */}
+        {/* Actions utilisateur desktop (en haut à droite) */}
         <div className="hidden items-center gap-3 md:flex">
           {loading ? (
             <div className="h-8 w-8 animate-pulse rounded-full bg-black/10"></div>
           ) : user ? (
             <>
-              {profile?.role === "admin" && (
-                <Link
-                  href="/admin"
-                  className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-500/30 transition hover:bg-blue-500"
-                >
-                  Préfacture
-                </Link>
-              )}
               <div className="flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-1.5">
                 <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center">
                   <span className="text-xs font-bold text-white">
@@ -122,7 +82,56 @@ export function MainHeader() {
             </>
           )}
         </div>
+
+        {/* Bouton hamburger (mobile) - Style moderne avec trois traits superposés */}
+        <button
+          type="button"
+          className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-black/10 bg-white text-black shadow-sm transition hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 md:hidden"
+          onClick={() => setOpen((prev) => !prev)}
+          aria-label={open ? "Fermer le menu de navigation" : "Ouvrir le menu de navigation"}
+          aria-expanded={open}
+        >
+          <div className="relative flex flex-col items-center justify-center gap-1.5 w-5 h-5">
+            <span
+              className={`absolute top-0 left-0 block h-0.5 w-5 rounded-full bg-current transition-all duration-300 ${
+                open ? "rotate-45 translate-y-2" : ""
+              }`}
+            />
+            <span
+              className={`absolute top-2 left-0 block h-0.5 w-5 rounded-full bg-current transition-all duration-300 ${
+                open ? "opacity-0" : ""
+              }`}
+            />
+            <span
+              className={`absolute top-4 left-0 block h-0.5 w-5 rounded-full bg-current transition-all duration-300 ${
+                open ? "-rotate-45 -translate-y-2" : ""
+              }`}
+            />
+          </div>
+        </button>
       </div>
+
+      {/* Navigation desktop (sous le header) */}
+      <nav className="hidden items-center justify-center gap-6 border-t border-black/5 pt-4 text-sm font-medium text-black/80 md:flex">
+        {navigation.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="border-b-2 border-transparent pb-1 transition hover:border-blue-500 hover:text-blue-600"
+          >
+            {item.label}
+          </Link>
+        ))}
+        {/* Bouton Préfacture pour les admins (au même niveau que les autres boutons) */}
+        {!loading && user && profile?.role === "admin" && (
+          <Link
+            href="/admin"
+            className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-500/30 transition hover:bg-blue-500"
+          >
+            Préfacture
+          </Link>
+        )}
+      </nav>
 
       {/* Menu mobile déroulant */}
       {open && (
@@ -138,20 +147,21 @@ export function MainHeader() {
                 {item.label}
               </Link>
             ))}
+            {/* Bouton Préfacture pour les admins (au même niveau que les autres boutons) */}
+            {!loading && user && profile?.role === "admin" && (
+              <Link
+                href="/admin"
+                className="block rounded-full bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-blue-500"
+                onClick={() => setOpen(false)}
+              >
+                Préfacture
+              </Link>
+            )}
           </nav>
           {loading ? (
             <div className="mt-2 h-10 w-full animate-pulse rounded-lg bg-black/10"></div>
           ) : user ? (
             <>
-              {profile?.role === "admin" && (
-                <Link
-                  href="/admin"
-                  className="mt-2 block rounded-full bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-blue-500"
-                  onClick={() => setOpen(false)}
-                >
-                  Préfacture
-                </Link>
-              )}
               <div className="mt-2 flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2">
                 <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
                   <span className="text-xs font-bold text-white">
@@ -195,5 +205,3 @@ export function MainHeader() {
     </header>
   );
 }
-
-
