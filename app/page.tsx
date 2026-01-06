@@ -211,10 +211,11 @@ export default function Home() {
                   </svg>
                 </a>
                 <a
-                  href="#"
+                  href="https://x.com/penengesab10209?s=11"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center justify-center w-8 h-8 rounded-full bg-sky-500 text-white hover:scale-110 transition-transform"
-                  aria-label="Twitter de Sabrina Penenge"
-                  title="Twitter (bientôt)"
+                  aria-label="Twitter/X de Sabrina Penenge"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19.633 7.997c.013.176.013.352.013.529 0 5.39-4.103 11.6-11.6 11.6-2.305 0-4.45-.676-6.253-1.84.321.037.63.05.964.05a8.18 8.18 0 0 0 5.074-1.748 4.09 4.09 0 0 1-3.817-2.835c.25.038.5.063.763.063.366 0 .733-.05 1.076-.138a4.084 4.084 0 0 1-3.276-4.01v-.05c.54.3 1.164.489 1.828.514a4.078 4.078 0 0 1-1.819-3.4c0-.751.202-1.44.553-2.04a11.6 11.6 0 0 0 8.417 4.27 4.606 4.606 0 0 1-.101-.936A4.086 4.086 0 0 1 18.09 5.9a8.045 8.045 0 0 0 2.59-.989 4.07 4.07 0 0 1-1.796 2.253 8.175 8.175 0 0 0 2.35-.64 8.79 8.79 0 0 1-1.601 1.473z" />
@@ -529,6 +530,11 @@ function ActivitiesCarouselSection() {
     "/meet5.jpg",
     "/fasecup1.jpg",
     "/fasecup2.jpg",
+    "/arbre1.jpeg",
+    "/arbre2.jpeg",
+    "/arbre3.jpeg",
+    "/arbre4.jpeg",
+    "/arbre5.jpeg",
   ];
 
   useEffect(() => {

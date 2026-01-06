@@ -50,6 +50,15 @@ const activities: Activity[] = [
     location: "Terrain Bokeleale / Lisanga",
     images: ["/fasecup1.jpg", "/fasecup2.jpg"],
   },
+  {
+    id: "5",
+    title: "Journée Nationale de l'arbre",
+    description: "L'Alliance pour la Défense de la Nature (ADN/ASBL) organise en collaboration avec la Faculté d'Administration des Affaires et Sciences Économiques une conférence dans le cadre de la Journée Nationale de l'arbre. Cette conférence, placée sous le haut patronage de Son Excellence Madame la Ministre de l'Environnement, Développement Durable et Nouvelle Économie du Climat, la Professeure Marie Nyange Ndambo, aborde le thème : « Un arbre, une vie : restaurer nos forêts pour un avenir durable ». Un événement majeur réunissant experts, étudiants et acteurs de la société civile pour sensibiliser à l'importance de la préservation et de la restauration des forêts en République Démocratique du Congo.",
+    date: "12/12/2025",
+    time: "12H00",
+    location: "UPC - Université Protestante au Congo, L3 Faculté d'Administration des Affaires et Sciences Économiques",
+    images: ["/arbre1.jpeg", "/arbre2.jpeg", "/arbre3.jpeg", "/arbre4.jpeg", "/arbre5.jpeg"],
+  },
 ];
 
 export default function ActivitesPage() {
@@ -147,7 +156,7 @@ function ActivityCard({ activity, index }: { activity: Activity; index: number }
 
       <div className="grid gap-0 md:grid-cols-2">
         {/* Section Images avec Carousel */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-blue-100 to-indigo-100 md:aspect-auto md:min-h-[500px]">
+        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-blue-100 to-indigo-100 md:aspect-auto md:min-h-[500px] flex items-center justify-center">
           {activity.images.length > 0 ? (
             <>
               <div className="relative h-full w-full">
@@ -165,7 +174,7 @@ function ActivityCard({ activity, index }: { activity: Activity; index: number }
                       alt={`${activity.title} - Image ${idx + 1}`}
                       fill
                       sizes="(min-width: 768px) 50vw, 100vw"
-                      className="object-cover object-top"
+                      className="object-contain"
                       priority={idx === 0}
                     />
                   </div>
